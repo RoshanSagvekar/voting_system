@@ -36,6 +36,12 @@ def vote_page(request):
 def result_page(request):
     return render(request, "results.html")
 
+def forgot_password_page(request):
+    return render(request, "forgot_password.html")
+
+def reset_password_page(request,uid,token):
+    return render(request, "reset_password.html")
+
 class RegisterAPIView(APIView):
     """Handles User Registration API"""
 
@@ -182,3 +188,59 @@ class ElectionResultsAPIView(APIView):
             return Response({"error": str(e.detail[0]) if isinstance(e.detail, list) else str(e.detail)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+from django.utils.encoding import force_bytes, force_str     
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
+
+class ForgotPasswordView(APIView):
+    def post(self, request):
+        email = request.data.get("email")
+        try:
+            user = User.objects.get(email=email)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            reset_link  = request.build_absolute_uri(reverse('reset-password', args=[uid,token]))
+            # reset_link = f"{settings.FRONTEND_URL}/reset-password/{uid}/{token}/"
+            
+            send_mail(
+                "Password Reset Request",
+                f"Click the link to reset your password: {reset_link}",
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                fail_silently=False,
+            )
+            
+            return Response({"message": "Password reset link sent!"}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"message": "User with this email does not exist."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ResetPasswordView(APIView):
+    def post(self, request, uidb64, token):
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+
+            if default_token_generator.check_token(user, token):
+                password = request.data.get("password")
+                confirm_password = request.data.get("confirm_password")
+
+                # Validate password and confirm_password
+                if not password or not confirm_password:
+                    return Response({"message": "Both password fields are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+                if password != confirm_password:
+                    return Response({"message": "Passwords do not match."}, status=status.HTTP_400_BAD_REQUEST)
+
+                if len(password) < 6:
+                    return Response({"message": "Password must be at least 6 characters."}, status=status.HTTP_400_BAD_REQUEST)
+
+                user.set_password(password)
+                user.save()
+                return Response({"message": "Password reset successfully!"}, status=status.HTTP_200_OK)
+            else:
+                return Response({"message": "Invalid or expired token."}, status=status.HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist:
+            return Response({"message": "User does not exist."}, status=status.HTTP_400_BAD_REQUEST)
+
