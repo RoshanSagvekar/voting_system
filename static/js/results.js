@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             // Candidate List
             candidatesList.innerHTML = data.candidates.map(candidate => `
                 <div class="col-md-4">
-                    <div class="card shadow-sm p-3 text-center">
+                    <div class="card shadow-sm p-3 text-center h-100">
                         <img src="${candidate.profile_picture || '/static/images/default-avatar.png'}" class="rounded-circle mx-auto" width="80" height="80">
                         <h5 class="mt-2">${candidate.name}</h5>
                         <p class="text-muted">${candidate.party}</p>
@@ -65,28 +65,70 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     // Render Bar Chart
+    // function renderChart(candidates) {
+    //     const ctx = document.getElementById("resultsChart").getContext("2d");
+    //     new Chart(ctx, {
+    //         type: "bar",
+    //         data: {
+    //             labels: candidates.map(c => c.name),
+    //             datasets: [{
+    //                 label: "Votes",
+    //                 data: candidates.map(c => c.votes),
+    //                 backgroundColor: "rgba(54, 162, 235, 0.7)",
+    //                 borderColor: "rgba(54, 162, 235, 1)",
+    //                 borderWidth: 1
+    //             }]
+    //         },
+    //         options: {
+    //             responsive: true,
+    //             scales: {
+    //                 y: { beginAtZero: true }
+    //             }
+    //         }
+    //     });
+    // }
+
     function renderChart(candidates) {
         const ctx = document.getElementById("resultsChart").getContext("2d");
-        new Chart(ctx, {
+    
+        if (window.myChart) {
+            window.myChart.destroy(); // Destroy previous chart to avoid stacking issues
+        }
+    
+        window.myChart = new Chart(ctx, {
             type: "bar",
             data: {
                 labels: candidates.map(c => c.name),
                 datasets: [{
                     label: "Votes",
                     data: candidates.map(c => c.votes),
-                    backgroundColor: "rgba(54, 162, 235, 0.7)",
-                    borderColor: "rgba(54, 162, 235, 1)",
-                    borderWidth: 1
+                    backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF", "#FF9F40"],
+                    borderColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF", "#FF9F40"],
+                    borderWidth: 2,
+                    borderRadius: 5,
+                    barPercentage: 0.5, // Adjust bar width (prevents extra-wide bars)
+                    categoryPercentage: 0.6 // Keeps bars aligned and prevents stretching
                 }]
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false, // Prevents chart from stretching
+                animation: { duration: 500, easing: "easeOutQuad" },
+                plugins: { legend: { display: false }, tooltip: { enabled: true } },
                 scales: {
-                    y: { beginAtZero: true }
+                    x: { grid: { display: false }, ticks: { font: { weight: "bold" } } },
+                    y: {
+                        beginAtZero: true,
+                        max: Math.max(...candidates.map(c => c.votes)) + 2, // Adds padding at top
+                        grid: { color: "rgba(200, 200, 200, 0.3)" },
+                        ticks: { stepSize: 1, font: { weight: "bold" } }
+                    }
                 }
             }
         });
     }
+    
+    
 
     // Fireworks Animation 🎆
     function startFireworks() {

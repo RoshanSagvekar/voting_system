@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
                 return `
                     <div class="col-md-4">
-                        <div class="card shadow-lg p-3 mb-4 text-center">
+                        <div class="card shadow-lg p-3 mb-4 text-center h-100">
                             <img src="${profilePicture}" class="card-img-top rounded-circle mx-auto border border-dark" alt="${candidateName}" style="width: 100px; height: 100px; object-fit: cover;">
                             <div class="card-body">
                                 <h5 class="card-title">${candidateName}</h5>
