@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard | Online Voting{% endblock %}
+
+{% block content %}
+<section class="d-flex justify-content-center align-items-center min-vh-100">
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            
+            <!-- Upcoming & Ongoing Elections -->
+            <h2 class="text-center fw-bold">Elections</h2>
+            <div id="elections-container" class="row mt-3 justify-content-center">
+                <!-- Elections will be dynamically inserted here -->
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Completed Elections -->
+            <h2 class="text-center fw-bold">Completed Elections</h2>
+            <div id="completed-elections" class="row mt-3 justify-content-center">
+                <!-- Completed election cards will be dynamically inserted here -->
+            </div>
+
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}

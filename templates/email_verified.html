@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block title %}Email Verified{% endblock %}
+
+{% block content %}
+<section class="d-flex justify-content-center align-items-center min-vh-100">
+    <div class="text-center">
+        <h2>Email Verified Successfully! ✅</h2>
+        <p>You can now login to your account.</p>
+        <a href="{% url 'login' %}" class="btn btn-primary">Go to Login</a>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,102 @@
+/* General Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+    background-size: 200% 200%;
+    animation: gradientBG 6s ease infinite;
+    color: white;
+    margin: 0;
+    padding: 0;
+}
+
+/* Navbar - Glassmorphism Effect */
+.glass-nav {
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+.navbar .nav-link {
+    font-size: 1.2rem;
+    color: white !important;
+    transition: all 0.3s ease;
+}
+.navbar .nav-link:hover {
+    color: #00c3ff !important;
+}
+
+/* Fix Navbar Overlapping */
+/* .page-content {
+    margin-top: 4%;
+    min-height: 80vh;
+} */
+
+/* Hero Section */
+/* .hero {
+    height: 85vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 50px 20px;
+} */
+.animated-text {
+    font-size: 3rem;
+    font-weight: bold;
+    animation: fadeIn 2s ease-in-out;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+}
+.hero p {
+    font-size: 1.4rem;
+    font-weight: 300;
+    opacity: 0.9;
+}
+
+/* Buttons */
+.btn-primary, .btn-outline-light {
+    font-size: 1.3rem;
+    padding: 14px 32px;
+    border-radius: 50px;
+    transition: all 0.3s ease-in-out;
+}
+.btn-primary:hover {
+    background: #0056b3;
+    transform: scale(1.05);
+}
+.btn-outline-light:hover {
+    background: white;
+    color: black;
+    transform: scale(1.05);
+}
+
+/* Footer
+.footer {
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 15px 0;
+    font-size: 0.9rem;
+} */
+
+/* Animations */
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .animated-text {
+        font-size: 2.5rem;
+    }
+    .hero p {
+        font-size: 1.2rem;
+    }
+    .btn-primary, .btn-outline-light {
+        font-size: 1rem;
+        padding: 12px 28px;
+    }
+}
