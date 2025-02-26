@@ -24,16 +24,24 @@ document.addEventListener("DOMContentLoaded", async function () {
                 headers: { "Authorization": `Bearer ${accessToken}` }
             });
 
+            if (response.status === 401) {
+                // Unauthorized: Redirect user to login page
+                localStorage.removeItem("access_token");
+                window.location.href = "/login/";
+            }
+
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || "Failed to fetch results.");
 
             electionInfo.innerText = `Election: ${data.election}`;
 
             // Winner Announcement
-            if (data.winner) {
+            if (data.winner === null) {
+                winnerSection.innerHTML = `<div class="alert alert-info text-center">Winner will be available after the election ends.</div>`;
+            } else {
                 winnerSection.innerHTML = `
                     <div class="winner-card text-center p-4">
-                        <img src="${data.winner.profile_picture || '/static/images/default-avatar.png'}" class="rounded-circle mb-3" width="120" height="120">
+                        <img src="${data.winner.profile_picture || '/static/images/default-avatar.jpg'}" alt="Winner" class="rounded-circle border border-dark" width="120" height="120">
                         <h3 class="text-success fw-bold">${data.winner.name} 🎉</h3>
                         <p><strong>Party:</strong> ${data.winner.party}</p>
                         <p><strong>Votes:</strong> ${data.winner.votes} (${data.winner.vote_percentage}%)</p>
@@ -41,15 +49,13 @@ document.addEventListener("DOMContentLoaded", async function () {
                 `;
 
                 startFireworks(); // Trigger fireworks animation 🎆
-            } else {
-                winnerSection.innerHTML = `<p class="text-muted text-center">No winner declared yet.</p>`;
             }
 
             // Candidate List
             candidatesList.innerHTML = data.candidates.map(candidate => `
-                <div class="col-md-4">
+                <div class="col-md-4 mb-3">
                     <div class="card shadow-sm p-3 text-center h-100">
-                        <img src="${candidate.profile_picture || '/static/images/default-avatar.png'}" class="rounded-circle mx-auto" width="80" height="80">
+                        <img src="${candidate.profile_picture || '/static/images/default-avatar.png'}" class="rounded-circle mx-auto border border-dark" width="80" height="80">
                         <h5 class="mt-2">${candidate.name}</h5>
                         <p class="text-muted">${candidate.party}</p>
                         <p><strong>Votes:</strong> ${candidate.votes} (${candidate.vote_percentage}%)</p>
@@ -63,30 +69,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             serverMessage.innerHTML = `<p class="text-danger">${error.message}</p>`;
         }
     }
-
-    // Render Bar Chart
-    // function renderChart(candidates) {
-    //     const ctx = document.getElementById("resultsChart").getContext("2d");
-    //     new Chart(ctx, {
-    //         type: "bar",
-    //         data: {
-    //             labels: candidates.map(c => c.name),
-    //             datasets: [{
-    //                 label: "Votes",
-    //                 data: candidates.map(c => c.votes),
-    //                 backgroundColor: "rgba(54, 162, 235, 0.7)",
-    //                 borderColor: "rgba(54, 162, 235, 1)",
-    //                 borderWidth: 1
-    //             }]
-    //         },
-    //         options: {
-    //             responsive: true,
-    //             scales: {
-    //                 y: { beginAtZero: true }
-    //             }
-    //         }
-    //     });
-    // }
 
     function renderChart(candidates) {
         const ctx = document.getElementById("resultsChart").getContext("2d");

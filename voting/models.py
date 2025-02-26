@@ -112,12 +112,3 @@ class Vote(models.Model):
 
     def __str__(self):
         return f"{self.voter.username} voted for {self.candidate.name}"
-
-
-# Result model to store election outcomes
-class Result(models.Model):
-    election = models.OneToOneField(Election, on_delete=models.CASCADE)
-    winner = models.ForeignKey(Candidate, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"Winner: {self.winner.name} ({self.election.name})"

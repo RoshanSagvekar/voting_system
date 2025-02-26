@@ -26,17 +26,35 @@ document.addEventListener("DOMContentLoaded", async function () {
                 headers: { "Authorization": `Bearer ${accessToken}` }
             });
 
+            if (response.status === 401) {
+                // Unauthorized: Redirect user to login page
+                localStorage.removeItem("access_token");
+                window.location.href = "/login/";
+            }
+    
             let data = await response.json();
             if (!response.ok) throw new Error(data.message || "Failed to fetch candidates.");
-
+    
             electionInfo.innerText = `Election: ${data.election_name}`;
-            
+    
+            // Handle empty candidates array
+            if (!data.candidates || data.candidates.length === 0) {
+                candidatesList.innerHTML = `
+                    <div class="alert alert-warning text-center w-100">
+                        <strong>No candidates available for this election.</strong><br>
+                        Candidates may not have been added or registered yet.
+                    </div>
+                `;
+                const submit_vote = document.getElementById("submit-vote");
+                if (submit_vote) submit_vote.style.display = "none"; // Hide Vote button
+                return;
+            }
+    
             candidatesList.innerHTML = data.candidates.map(candidate => {
-                // Handle missing data
                 const candidateName = candidate.name || "Unknown Candidate";
                 const partyName = candidate.party || "Independent";
                 const profilePicture = candidate.profile_picture || "/static/images/default-avatar.jpg";
-
+    
                 return `
                     <div class="col-md-4">
                         <div class="card shadow-lg p-3 mb-4 text-center h-100">
@@ -55,6 +73,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             serverMessage.innerHTML = `<p class="text-danger">${error.message}</p>`;
         }
     }
+    
 
     fetchElectionDetails();
 });
@@ -98,6 +117,11 @@ document.addEventListener("DOMContentLoaded", async function () {
                 body: JSON.stringify({ candidate_id: selectedCandidate.value })
             });
 
+            if (response.status === 401) {
+                // Unauthorized: Redirect user to login page
+                localStorage.removeItem("access_token");
+                window.location.href = "/login/";
+            }
             const data = await response.json();
 
             if (response.ok) {

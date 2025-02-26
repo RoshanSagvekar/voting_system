@@ -44,3 +44,4 @@ function showErrorToast(message) {
     document.getElementById("toastErrorContent").innerText = message;
     toastElement.show();
 }
+

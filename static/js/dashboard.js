@@ -20,6 +20,12 @@ document.addEventListener("DOMContentLoaded", async function () {
                 },
             });
 
+            if (response.status === 401) {
+                // Unauthorized: Redirect user to login page
+                localStorage.removeItem("access_token");
+                window.location.href = "/login/";
+            }
+
             let data = await response.json();
 
             if (response.ok) {

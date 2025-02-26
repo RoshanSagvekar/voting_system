@@ -75,15 +75,15 @@ class UserService:
 class VotingService:
     @staticmethod
     def get_ongoing_elections():
-        return Election.objects.filter(start_date__lte=now(), end_date__gte=now(), is_active=True)
+        return Election.objects.filter(start_date__lte=now(), end_date__gte=now(), is_active=True).order_by('end_date')
     
     @staticmethod
     def get_completed_elections():
-        return Election.objects.filter(end_date__lt=now(), is_active=True)
+        return Election.objects.filter(end_date__lt=now(), is_active=True).order_by('end_date')
 
     @staticmethod
     def get_upcoming_elections():
-        return Election.objects.filter(start_date__gte=now(),is_active=True)
+        return Election.objects.filter(start_date__gte=now(),is_active=True).order_by('end_date')
 
     @staticmethod
     def get_candidates_for_election(election_id):
@@ -112,9 +112,6 @@ class ElectionResultService:
     def get_results(election_id):
         election = get_object_or_404(Election, id=election_id)
 
-        if not election.is_completed():
-            raise ValidationError("Results will be available after the election ends.")
-
         candidates = Candidate.objects.filter(election=election).order_by('-votes')
         total_votes = sum(candidate.votes for candidate in candidates)
 
@@ -130,7 +127,8 @@ class ElectionResultService:
             for candidate in candidates
         ]
 
-        winner = election.get_winner()
+        # Only declare a winner if the election has ended
+        winner = election.get_winner() if election.is_completed() else None
 
         return {
             "election": election.name,
