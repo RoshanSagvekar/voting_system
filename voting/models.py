@@ -47,6 +47,8 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
+    class Meta:
+        db_table = 'user'
 
     def __str__(self):
         return self.username
@@ -75,6 +77,9 @@ class EmailVerificationToken(models.Model):
     token = models.UUIDField(default=uuid.uuid4, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        db_table = 'emailverificationtoken'
+
 
 # Election model to store election details
 class Election(models.Model):
@@ -82,6 +87,9 @@ class Election(models.Model):
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
     is_active = models.BooleanField(default=True)  # Controls if voting is open
+
+    class Meta:
+        db_table = 'election'
 
     def __str__(self):
         return self.name
@@ -108,6 +116,10 @@ class Candidate(models.Model):
     votes = models.IntegerField(default=0)  # To store vote count
     profile_picture = models.ImageField(upload_to=upload_profile_pic, null=True, blank=True)  # Candidate picture
 
+
+    class Meta:
+        db_table = 'candidate'
+
     def __str__(self):
         return f"{self.name} ({self.party})"
 
@@ -120,6 +132,7 @@ class Vote(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        db_table='vote'
         unique_together = ('voter', 'election')  # Prevents duplicate votes
 
     def __str__(self):
