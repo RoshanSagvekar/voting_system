@@ -1,10 +1,15 @@
+import datetime
 from django.contrib import admin
-from django.urls import path
+from django.core.exceptions import ValidationError
+from django.urls import path, reverse
 from django.shortcuts import render
 from django.contrib.admin import AdminSite
 from django.utils.html import format_html
 from django.contrib.auth.models import Group
 from django.utils.timezone import now
+from django.contrib.auth.hashers import make_password
+from django.core.mail import send_mail
+from django.utils.translation import gettext_lazy as _
 from .models import *
 import matplotlib.pyplot as plt
 import matplotlib
@@ -17,12 +22,56 @@ class UserAdmin(admin.ModelAdmin):
     search_fields = ('username', 'email', 'aadhar_number')
     list_filter = ('is_verified',)
 
+    # Specify only the required fields in the form
+    fields = [
+        "username", "first_name", "last_name", "email", "password",
+        "date_of_birth", "phone_number", "aadhar_number", "profile_picture","is_verified"
+    ]
+
     def display_profile_pic(self, obj):
         if obj.profile_picture:
             return format_html('<img src="{}" width="50" height="50" style="border-radius:50%;" />', obj.profile_picture.url)
         return "No Image"
 
     display_profile_pic.short_description = "Profile Picture"
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['show_save_and_add_another'] = False
+        return super().change_view(request, object_id, form_url, extra_context)
+
+    def add_view(self, request, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['show_save_and_add_another'] = False
+        return super().add_view(request, form_url, extra_context)
+    
+    def save_model(self, request, obj, form, change):
+        """Override save_model to apply custom registration logic in Django Admin."""
+        
+        if change:  # If updating user
+            # Check if password was changed in the form
+            old_user = self.model.objects.get(pk=obj.pk)
+            if obj.password != old_user.password:  # Only hash if changed
+                obj.password = make_password(obj.password)
+        else:  # If creating a new user
+            obj.password = make_password(obj.password)
+            obj.is_verified = False  # Pending email verification
+
+        super().save_model(request, obj, form, change)
+
+        # Generate Email Verification Token only for new users
+        if not change:
+            token, created = EmailVerificationToken.objects.get_or_create(user=obj)
+
+            # Send Verification Email
+            verification_link = request.build_absolute_uri(reverse('verify-email', args=[token.token]))
+            send_mail(
+                "Verify Your Email - Online Voting System",
+                f"Click the link to verify your email: {verification_link}",
+                settings.EMAIL_HOST_USER,
+                [obj.email],
+                fail_silently=False,
+            )
 
 class CandidateInline(admin.TabularInline):
     """Display candidates inside the election page"""
@@ -78,6 +127,16 @@ class ElectionAdmin(admin.ModelAdmin):
 
     results_chart.short_description = "Election Results Chart"
 
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['show_save_and_add_another'] = False
+        return super().change_view(request, object_id, form_url, extra_context)
+
+    def add_view(self, request, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['show_save_and_add_another'] = False
+        return super().add_view(request, form_url, extra_context)
+
 
 class CandidateAdmin(admin.ModelAdmin):
     list_display = ('name', 'party', 'election', 'votes', 'vote_percentage', 'profile_pic_preview')
@@ -98,6 +157,16 @@ class CandidateAdmin(admin.ModelAdmin):
         return "No Image"
 
     profile_pic_preview.short_description = "Profile Picture"
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['show_save_and_add_another'] = False
+        return super().change_view(request, object_id, form_url, extra_context)
+
+    def add_view(self, request, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['show_save_and_add_another'] = False
+        return super().add_view(request, form_url, extra_context)
 
 
 class CustomAdminSite(AdminSite):

@@ -3,8 +3,10 @@ import uuid
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 from django.utils.timezone import now
-from datetime import date
+from datetime import date, timedelta
 
 # Function to upload profile pictures
 def upload_profile_pic(instance, filename):
@@ -56,6 +58,16 @@ class User(AbstractUser):
             age = today.year - self.date_of_birth.year - ((today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day))
             return age >= 18
         return False
+    
+    def clean(self):
+        """Validate age before saving."""
+        min_birth_date = date.today() - timedelta(days=18 * 365)
+        if self.date_of_birth > min_birth_date:
+            raise ValidationError({"date_of_birth": _("User must be 18+ to register.")})
+
+    def save(self, *args, **kwargs):
+        self.clean()  # Ensure validation runs
+        super().save(*args, **kwargs)
     
 
 class EmailVerificationToken(models.Model):
